@@ -9,12 +9,78 @@ class MiApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Perfil',
-      home: PerfilScreen(),
+      home: HomeScreen(), // <-- Pantalla inicial
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
+// -------------------- HOME SCREEN --------------------
+class HomeScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          // IMAGEN DE FONDO
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/fondo.jpg'), // agrega tu imagen
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+
+          // CAPA OSCURA (para mejor visibilidad)
+          Container(
+            color: Colors.black54,
+          ),
+
+          // CONTENIDO
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Bienvenido',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Mi Aplicación Flutter',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 20,
+                  ),
+                ),
+                SizedBox(height: 30),
+
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PerfilScreen(),
+                      ),
+                    );
+                  },
+                  child: Text('Entrar'),
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// -------------------- PERFIL ORIGINAL --------------------
 class PerfilScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
