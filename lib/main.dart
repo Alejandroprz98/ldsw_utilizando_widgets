@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:math';
+import 'package:http/http.dart' as http;
+import 'package:audioplayers/audioplayers.dart';
 
 void main() {
   runApp(MiApp());
@@ -8,158 +12,247 @@ class MiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Perfil',
-      home: HomeScreen(), // <-- Pantalla inicial
+      title: 'Pokédex Pro',
       debugShowCheckedModeBanner: false,
+      home: PokedexScreen(),
     );
   }
 }
 
-// -------------------- HOME SCREEN --------------------
-class HomeScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          // IMAGEN DE FONDO
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/fondo.jpg'), // agrega tu imagen
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
+// -------------------- MODELO --------------------
+class Pokemon {
+  final String name;
+  final String image;
+  final int attack;
+  final int defense;
+  final int speed;
 
-          // CAPA OSCURA (para mejor visibilidad)
-          Container(
-            color: Colors.black54,
-          ),
+  Pokemon({
+    required this.name,
+    required this.image,
+    required this.attack,
+    required this.defense,
+    required this.speed,
+  });
 
-          // CONTENIDO
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Bienvenido',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Mi Aplicación Flutter',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 20,
-                  ),
-                ),
-                SizedBox(height: 30),
-
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PerfilScreen(),
-                      ),
-                    );
-                  },
-                  child: Text('Entrar'),
-                )
-              ],
-            ),
-          ),
-        ],
-      ),
+  factory Pokemon.fromJson(Map<String, dynamic> json) {
+    return Pokemon(
+      name: json['name'],
+      image: json['sprites']['front_default'],
+      attack: json['stats'][1]['base_stat'],
+      defense: json['stats'][2]['base_stat'],
+      speed: json['stats'][5]['base_stat'],
     );
   }
 }
 
-// -------------------- PERFIL ORIGINAL --------------------
-class PerfilScreen extends StatelessWidget {
+// -------------------- API --------------------
+Future<Pokemon> fetchPokemonByName(String name) async {
+  final response = await http.get(
+    Uri.parse('https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}'),
+  );
+
+  if (response.statusCode == 200) {
+    return Pokemon.fromJson(json.decode(response.body));
+  } else {
+    throw Exception('No encontrado');
+  }
+}
+
+Future<Pokemon> fetchRandomPokemon() async {
+  final id = Random().nextInt(151) + 1;
+
+  final response = await http.get(
+    Uri.parse('https://pokeapi.co/api/v2/pokemon/$id'),
+  );
+
+  if (response.statusCode == 200) {
+    return Pokemon.fromJson(json.decode(response.body));
+  } else {
+    throw Exception('Error');
+  }
+}
+
+// -------------------- PANTALLA --------------------
+class PokedexScreen extends StatefulWidget {
+  @override
+  _PokedexScreenState createState() => _PokedexScreenState();
+}
+
+class _PokedexScreenState extends State<PokedexScreen> {
+  final controller = TextEditingController();
+  final player = AudioPlayer();
+
+  late Future<Pokemon> pokemon;
+
+  List<Pokemon> favoritos = [];
+
+  @override
+  void initState() {
+    super.initState();
+    pokemon = fetchRandomPokemon();
+
+    // 🔊 VOLUMEN GLOBAL BAJO
+    player.setVolume(0.2);
+  }
+
+  void buscar() {
+    final text = controller.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      pokemon = fetchPokemonByName(text);
+    });
+
+    playSound();
+  }
+
+  void random() {
+    setState(() {
+      pokemon = fetchRandomPokemon();
+    });
+
+    playSound();
+  }
+
+  void agregarFavorito(Pokemon p) {
+    if (!favoritos.any((e) => e.name == p.name)) {
+      setState(() {
+        favoritos.add(p);
+      });
+    }
+  }
+
+  Future<void> playSound() async {
+    try {
+      await player.stop(); // evita sonidos duplicados
+
+      await player.play(
+        UrlSource(
+          'https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/25.ogg',
+        ),
+      );
+    } catch (e) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.red.shade50,
       appBar: AppBar(
-        title: Text('Mi Perfil'),
-        backgroundColor: Colors.blue,
+        title: Text('Pokédex Pro'),
+        backgroundColor: Colors.red,
       ),
       body: Column(
         children: [
 
-          // HEADER
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(20),
-            color: Colors.blue,
-            child: Column(
+          // 🔍 BUSCADOR
+          Padding(
+            padding: EdgeInsets.all(10),
+            child: Row(
               children: [
-                Text(
-                  'Alejandro Pérez Rosas',
-                  style: TextStyle(color: Colors.white, fontSize: 22),
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar Pokémon...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
-                Text(
-                  'Desarrollador Flutter',
-                  style: TextStyle(color: Colors.white70),
-                ),
+                IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: buscar,
+                )
               ],
             ),
           ),
 
-          SizedBox(height: 20),
-
-          // STACK (imagen con etiqueta)
-          Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              Container(
-                width: 150,
-                height: 150,
-                color: Colors.grey,
-              ),
-              Container(
-                width: 150,
-                color: Colors.black54,
-                padding: EdgeInsets.all(5),
-                child: Text(
-                  'Foto',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
+          // BOTÓN RANDOM
+          ElevatedButton(
+            onPressed: random,
+            child: Text("Aleatorio"),
           ),
 
-          SizedBox(height: 20),
+          SizedBox(height: 10),
 
-          // INFO (COLUMN)
-          Container(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('📍 Guadalajara'),
-                Text('📧 correo@email.com'),
-                Text('📱 333-456-7890'),
-              ],
+          // 🔥 RESULTADO
+          Expanded(
+            child: FutureBuilder<Pokemon>(
+              future: pokemon,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                final p = snapshot.data!;
+
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+
+                    Image.network(p.image, height: 150),
+
+                    Text(
+                      p.name.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    SizedBox(height: 10),
+
+                    // 📊 STATS
+                    Card(
+                      margin: EdgeInsets.all(10),
+                      child: Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Column(
+                          children: [
+                            Text("ATAQUE: ${p.attack}"),
+                            Text("DEFENSA: ${p.defense}"),
+                            Text("VELOCIDAD: ${p.speed}"),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 10),
+
+                    ElevatedButton.icon(
+                      onPressed: () => agregarFavorito(p),
+                      icon: Icon(Icons.favorite),
+                      label: Text("Favorito"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
 
-          SizedBox(height: 20),
-
-          // BOTONES (ROW)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Icon(Icons.call, color: Colors.green, size: 30),
-              Icon(Icons.message, color: Colors.blue, size: 30),
-              Icon(Icons.share, color: Colors.orange, size: 30),
-            ],
+          // ❤️ FAVORITOS
+          Container(
+            height: 120,
+            padding: EdgeInsets.all(10),
+            color: Colors.white,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: favoritos.map((p) {
+                return Padding(
+                  padding: EdgeInsets.all(5),
+                  child: Column(
+                    children: [
+                      Image.network(p.image, height: 50),
+                      Text(p.name),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
