@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "524330395598",
+    "project_id": "catalogo-d80e2",
+    "storage_bucket": "catalogo-d80e2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:524330395598:android:95bcf2c908a406d99d2d9f",
+        "android_client_info": {
+          "package_name": "com.example.ldsw_utilizando_widgets"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDSUt5aHolid2n7O65QyOiwdtcBkdDk38"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
