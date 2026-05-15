@@ -18,15 +18,16 @@ class AuthService {
 
     final user = credential.user;
 
-    // 🔥 GUARDAR EN FIRESTORE
     if (user != null) {
 
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .set({
+
         'email': email,
         'role': 'user',
+
       });
     }
 

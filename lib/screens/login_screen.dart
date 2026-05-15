@@ -17,11 +17,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final auth = AuthService();
 
   void login() async {
+
     try {
 
       final user = await auth.login(
-        emailController.text,
-        passwordController.text,
+        emailController.text.trim(),
+        passwordController.text.trim(),
       );
 
       final doc = await FirebaseFirestore.instance
@@ -29,16 +30,23 @@ class _LoginScreenState extends State<LoginScreen> {
           .doc(user!.uid)
           .get();
 
+      if (!doc.exists) {
+        throw Exception("El usuario no existe en Firestore");
+      }
+
       final role = doc['role'];
 
       if (role == 'admin') {
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (_) => HomeScreen(isAdmin: true),
           ),
         );
+
       } else {
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -48,14 +56,19 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
     } catch (e) {
+
+      print(e);
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al iniciar sesión")),
+        SnackBar(
+          content: Text(e.toString()),
+        ),
       );
     }
   }
 
-  // 🔥 BOTÓN LIMPIAR / VOLVER A INICIO
   void resetLogin() {
+
     emailController.clear();
     passwordController.clear();
 
@@ -66,6 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Inicio de sesión"),
@@ -127,7 +141,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Text("Registrarse"),
             ),
 
-            // 🔥 BOTÓN NUEVO
             TextButton(
               onPressed: resetLogin,
               child: Text(

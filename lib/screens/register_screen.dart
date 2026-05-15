@@ -25,18 +25,27 @@ class _RegisterScreenState
     try {
 
       await auth.register(
-        emailController.text,
-        passwordController.text,
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      );
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        SnackBar(
+          content: Text("Usuario registrado"),
+        ),
       );
 
       Navigator.pop(context);
 
     } catch (e) {
 
+      print(e);
+
       ScaffoldMessenger.of(context)
           .showSnackBar(
         SnackBar(
-          content: Text("Error al registrarse"),
+          content: Text(e.toString()),
         ),
       );
     }
