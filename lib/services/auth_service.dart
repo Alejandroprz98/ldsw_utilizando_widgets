@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
 
@@ -15,7 +16,21 @@ class AuthService {
       password: password,
     );
 
-    return credential.user;
+    final user = credential.user;
+
+    // 🔥 GUARDAR EN FIRESTORE
+    if (user != null) {
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set({
+        'email': email,
+        'role': 'user',
+      });
+    }
+
+    return user;
   }
 
   Future<User?> login(
