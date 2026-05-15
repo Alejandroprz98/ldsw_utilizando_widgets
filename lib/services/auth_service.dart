@@ -24,10 +24,8 @@ class AuthService {
           .collection('users')
           .doc(user.uid)
           .set({
-
         'email': email,
         'role': 'user',
-
       });
     }
 

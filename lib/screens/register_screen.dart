@@ -1,23 +1,15 @@
 import 'package:flutter/material.dart';
-
 import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
-
   @override
-  State<RegisterScreen> createState() =>
-      _RegisterScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState
-    extends State<RegisterScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
 
-  final emailController =
-      TextEditingController();
-
-  final passwordController =
-      TextEditingController();
-
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
   final auth = AuthService();
 
   void register() async {
@@ -29,24 +21,26 @@ class _RegisterScreenState
         passwordController.text.trim(),
       );
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        SnackBar(
-          content: Text("Usuario registrado"),
-        ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Usuario registrado correctamente")),
       );
 
       Navigator.pop(context);
 
     } catch (e) {
 
-      print(e);
+      String mensaje = "Error al registrar usuario";
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-        ),
+      if (e.toString().contains("email-already-in-use")) {
+        mensaje = "Este correo ya está registrado";
+      } else if (e.toString().contains("weak-password")) {
+        mensaje = "La contraseña es muy débil (mínimo 6 caracteres)";
+      } else if (e.toString().contains("invalid-email")) {
+        mensaje = "El correo no es válido";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(mensaje)),
       );
     }
   }

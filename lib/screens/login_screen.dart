@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../services/auth_service.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
@@ -57,12 +56,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
     } catch (e) {
 
-      print(e);
+      String mensaje = "Error al iniciar sesión";
+
+      if (e.toString().contains("user-not-found")) {
+        mensaje = "Usuario no encontrado";
+      } else if (e.toString().contains("wrong-password")) {
+        mensaje = "Contraseña incorrecta";
+      } else if (e.toString().contains("invalid-email")) {
+        mensaje = "Correo inválido";
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-        ),
+        SnackBar(content: Text(mensaje)),
       );
     }
   }
