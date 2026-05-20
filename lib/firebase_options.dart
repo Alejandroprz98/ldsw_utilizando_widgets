@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'catalogo-d80e2.firebasestorage.app',
     measurementId: 'G-NYWCEXBLW2',
   );
+
 }
